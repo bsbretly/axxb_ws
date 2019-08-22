@@ -4,6 +4,7 @@ import numpy as np
 from nav_msgs.msg import Odometry
 # from scipy.spatial.transform import Rotation as R
 from pyquaternion import Quaternion #Quaternion in the form (w, x, y, z)
+import pickle
 
 class TransformInterface():
     def __init__(self):
@@ -46,12 +47,10 @@ class TransformInterface():
         #if bag is paused or stops playing, write data file
         if (self.A == self.A_prev).all() and np.count_nonzero(self.A):
             print("writing data file")
-            with open('A.txt', 'w') as f:
-                for item in self.A_list:
-                    print >> f, item        
-            with open('B.txt', 'w') as f:
-                for item in self.B_list:
-                    print >> f, item 
+            with open('A_matrix', 'wb') as f:
+                pickle.dump(self.A_list, f)
+            with open('B_matrix', 'wb') as f:
+                pickle.dump(self.B_list, f)
             print("data files written")
             rospy.signal_shutdown("data files written")            
 
