@@ -1,0 +1,8 @@
+prefix=/home/brett/axxb_ws/devel/.private/transform_interface
+
+Name: transform_interface
+Description: Description of transform_interface
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/brett/axxb_ws/devel/.private/transform_interface/lib 
+Requires: 
