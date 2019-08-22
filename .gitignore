@@ -1,5 +1,8 @@
 # build files
 **/build/
+**/.catkin_tools/
+**/devel/
+**/logs/
 
 # Prerequisites
 *.d
