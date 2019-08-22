@@ -43,36 +43,39 @@ class TransformInterface():
         self.B = np.concatenate((np.concatenate((camera_rotation,camera_translation.T),axis=1), np.array([[0,0,0,1]])),axis=0)
 
     def generate_data(self, timer):
+        #if bag is paused or stops playing, write data file
+        if (self.A == self.A_prev).all() and np.count_nonzero(self.A):
+            print("writing data file")
+            with open('A.txt', 'w') as f:
+                for item in self.A_list:
+                    print >> f, item        
+            with open('B.txt', 'w') as f:
+                for item in self.B_list:
+                    print >> f, item 
+            print("data files written")
+            rospy.signal_shutdown("data files written")            
+
         if self.count > 1:
             A_bar = np.dot(np.linalg.inv(self.A_prev),self.A)
             B_bar = np.dot(np.linalg.inv(self.B_prev),self.B)
             self.A_list.append(A_bar) 
             self.B_list.append(B_bar)
-            # print(len(self.A_list))
-            # print(len(self.B_list))
-
         else:
             A_prev = self.A
             B_prev = self.B
 
-        self.A_prev = self.A
-        self.B_prev = self.B
-        self.count += 1
+        if np.count_nonzero(self.A):    
+            self.A_prev = self.A
+            self.B_prev = self.B
+            self.count += 1
+        else: 
+            rospy.loginfo("no input data, begin playing the bag file")
 
 if __name__ == '__main__':
-
-  print("entering main")
   rospy.init_node('transform_interface_node')
   try:
     TransformInterface()
     rospy.spin()
   except rospy.ROSInterruptException:
     print("exception thrown")
-    with open('A.txt', 'w') as f:
-                for item in self.A_list:
-                    print >> f, item
-
-    with open('B.txt', 'w') as f:
-                for item in self.B_list:
-                    print >> f, item
     pass
