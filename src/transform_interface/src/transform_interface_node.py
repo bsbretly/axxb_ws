@@ -10,13 +10,12 @@ class TransformInterface():
     def __init__(self):
         self.vicon_transform = np.zeros((4, 4)) #np.arange(16).reshape(4, 4)
         self.camera_transform = np.zeros((4, 4)) #np.arange(16).reshape(4, 4)
-        self.A = np.zeros((4, 4))
-        self.A_prev = np.zeros((4, 4))
-        self.A_list = []
-        self.B = np.zeros((4, 4))
-        self.B_prev = np.zeros((4, 4))
-        self.B_list = []
-        self.count = 1
+        self.T_w_b = np.zeros((4, 4))
+        self.T_w_b_prev = np.zeros((4, 4))
+        self.T_w_b_list = []
+        self.T_i_c = np.zeros((4, 4))
+        self.T_i_c_prev = np.zeros((4, 4))
+        self.T_i_c_list = []
         self.vicon_odom = rospy.Subscriber("/mavros/local_position/odom", Odometry, self.vicon_odom_callback)
         self.camera_odom = rospy.Subscriber("/camera/odom/sample", Odometry, self.camera_odom_callback)
         self.timer = rospy.Timer(rospy.Duration(1), self.generate_data)
@@ -29,8 +28,8 @@ class TransformInterface():
         vicon_translation = np.array([[vicon_odom.pose.pose.position.x,
                                        vicon_odom.pose.pose.position.y,
                                        vicon_odom.pose.pose.position.z]])
-        #4x4 homogeneous transformation matrix A
-        self.A = np.concatenate((np.concatenate((vicon_rotation,vicon_translation.T),axis=1), np.array([[0,0,0,1]])),axis=0)
+        #4x4 homogeneous transformation matrix of the body frame expressed in w frame
+        self.T_w_b = np.concatenate((np.concatenate((vicon_rotation,vicon_translation.T),axis=1), np.array([[0,0,0,1]])),axis=0)
 
     def camera_odom_callback(self, camera_odom):
         camera_rotation = Quaternion(camera_odom.pose.pose.orientation.w, 
@@ -40,35 +39,27 @@ class TransformInterface():
         camera_translation = np.array([[camera_odom.pose.pose.position.x,
                                        camera_odom.pose.pose.position.y,
                                        camera_odom.pose.pose.position.z]])
-        #4x4 homogeneous transformation matrix B
-        self.B = np.concatenate((np.concatenate((camera_rotation,camera_translation.T),axis=1), np.array([[0,0,0,1]])),axis=0)
+        #4x4 homogeneous transformation matrix the camera frame expressed in i frame
+        self.T_i_c = np.concatenate((np.concatenate((camera_rotation,camera_translation.T),axis=1), np.array([[0,0,0,1]])),axis=0)
 
     def generate_data(self, timer):
         #if bag is paused or stops playing, write data file
-        if (self.A == self.A_prev).all() and np.count_nonzero(self.A):
-            print("writing data file")
-            with open('A_matrix', 'wb') as f:
-                pickle.dump(self.A_list, f)
-            with open('B_matrix', 'wb') as f:
-                pickle.dump(self.B_list, f)
+        if (self.T_w_b == self.T_w_b_prev).all() and np.count_nonzero(self.T_w_b):
+            print("writing data files")
+            with open('T_w_b', 'wb') as f:
+                pickle.dump(self.T_w_b_list, f)
+            with open('T_i_c', 'wb') as f:
+                pickle.dump(self.T_i_c_list, f)
             print("data files written")
-            rospy.signal_shutdown("data files written")            
-
-        if self.count > 1:
-            A_bar = np.dot(np.linalg.inv(self.A_prev),self.A)
-            B_bar = np.dot(np.linalg.inv(self.B_prev),self.B)
-            self.A_list.append(A_bar) 
-            self.B_list.append(B_bar)
-        else:
-            A_prev = self.A
-            B_prev = self.B
-
-        if np.count_nonzero(self.A):    
-            self.A_prev = self.A
-            self.B_prev = self.B
-            self.count += 1
-        else: 
+            rospy.signal_shutdown("data files written") 
+        elif np.count_nonzero(self.T_w_b) == 0:
             rospy.loginfo("no input data, begin playing the bag file")
+        else:
+            self.T_w_b_list.append(self.T_w_b) 
+            self.T_i_c_list.append(self.T_i_c)
+           
+            self.T_w_b_prev = self.T_w_b
+            self.T_i_c_prev = self.T_i_c
 
 if __name__ == '__main__':
   rospy.init_node('transform_interface_node')
