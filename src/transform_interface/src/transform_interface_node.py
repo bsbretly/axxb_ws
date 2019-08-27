@@ -25,10 +25,11 @@ class TransformInterface():
                                         vicon_odom.pose.pose.orientation.x, 
                                         vicon_odom.pose.pose.orientation.y, 
                                         vicon_odom.pose.pose.orientation.z).rotation_matrix
+        print(vicon_rotation)
         vicon_translation = np.array([[vicon_odom.pose.pose.position.x,
                                        vicon_odom.pose.pose.position.y,
                                        vicon_odom.pose.pose.position.z]])
-        #4x4 homogeneous transformation matrix of the body frame expressed in w frame
+        #4x4 homogeneous transformation matrix of the robot CoM expressed in w frame
         self.T_w_b = np.concatenate((np.concatenate((vicon_rotation,vicon_translation.T),axis=1), np.array([[0,0,0,1]])),axis=0)
 
     def camera_odom_callback(self, camera_odom):
@@ -39,7 +40,7 @@ class TransformInterface():
         camera_translation = np.array([[camera_odom.pose.pose.position.x,
                                        camera_odom.pose.pose.position.y,
                                        camera_odom.pose.pose.position.z]])
-        #4x4 homogeneous transformation matrix the camera frame expressed in i frame
+        #4x4 homogeneous transformation matrix of the camera expressed in i frame
         self.T_i_c = np.concatenate((np.concatenate((camera_rotation,camera_translation.T),axis=1), np.array([[0,0,0,1]])),axis=0)
 
     def generate_data(self, timer):
