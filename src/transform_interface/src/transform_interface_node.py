@@ -59,13 +59,13 @@ class TransformInterface():
         #if bag is paused or stops playing, write data file
         if (self.T_w_b == self.T_w_b_prev).all() and np.count_nonzero(self.T_w_b):
             print("writing data files")
-            with open('T_w_b', 'wb') as f:
+            with open('output/T_w_b', 'wb') as f:
                 pickle.dump(self.T_w_b_list, f)
-            with open('T_i_c', 'wb') as f:
+            with open('output/T_i_c', 'wb') as f:
                 pickle.dump(self.T_i_c_list, f)
-            with open('vicon_quat', 'wb') as f:
+            with open('output/vicon_quat', 'wb') as f:
                 pickle.dump(self.vicon_quat_list, f)
-            with open('camera_quat', 'wb') as f:
+            with open('output/camera_quat', 'wb') as f:
                 pickle.dump(self.camera_quat_list, f)
             print("data files written")
             rospy.signal_shutdown("data files written") 
@@ -74,8 +74,8 @@ class TransformInterface():
         else:
             self.T_w_b_list.append(self.T_w_b) 
             self.T_i_c_list.append(self.T_i_c)
+
             self.vicon_quat_list.append(self.vicon_quat)
-            print(self.vicon_quat_list) 
             self.camera_quat_list.append(self.camera_quat)
             
             self.T_w_b_prev = self.T_w_b

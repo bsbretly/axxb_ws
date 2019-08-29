@@ -19,28 +19,26 @@ def angle_between(v1, v2):
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
 #ensure quaternions are sufficiently different for computation of A,B matrices
-angle_threshold = 10*(math.pi/180)
-count = 1
-flag = True
+angle_threshold = 30*(math.pi/180)
 # Read data files
-filename = "T_w_b"
+filename = "output/T_w_b"
 T_w_b =  pickle.load(open( filename, "rb" ) )
 
-filename = "vicon_quat"
+filename = "output/vicon_quat"
 vicon_quat =  pickle.load(open( filename, "rb" ) )
 
-filename = "T_i_c"
+filename = "output/T_i_c"
 T_i_c =  pickle.load(open( filename, "rb" ) )
 
-filename = "camera_quat"
+filename = "output/camera_quat"
 camera_quat =  pickle.load(open( filename, "rb" ) )
 
 # datasize = len(pattern_tfs)
 datasize = len(T_w_b)
 # ksamples = 30
-ksamples = 30
+ksamples = 50
 # iters = 500
-iters = 500
+iters = 5000
 Rxlist = []
 sigmaRx_list = []
 txlist = []
@@ -50,21 +48,21 @@ for n in range(iters):
     beta = []
     ta = []
     tb = []
-    # Generate data-A and B matrices
+    # Generate data A and B matrices
     for i in range(ksamples):
         rand_number_1 = int(np.random.uniform(0,datasize))
         rand_number_2 = int(np.random.uniform(0,datasize))
 
+        # print abs(angle_between(vicon_quat[rand_number_1],vicon_quat[rand_number_2]))*180/math.pi
+        # print abs(angle_between(camera_quat[rand_number_1],camera_quat[rand_number_2]))*180/math.pi
+
         while (abs(angle_between(vicon_quat[rand_number_1],vicon_quat[rand_number_2])) < angle_threshold or 
                abs(angle_between(camera_quat[rand_number_1],camera_quat[rand_number_2])) < angle_threshold):
-            count += 1
+            # print "angle threshold failed, try another sample"
             rand_number_2 = int(np.random.uniform(0,datasize))
-            if count > datasize:
-                flag = False
-                break
-        else: 
-            continue
-        break
+            # print abs(angle_between(vicon_quat[rand_number_1],vicon_quat[rand_number_2]))*180/math.pi
+            # print abs(angle_between(camera_quat[rand_number_1],camera_quat[rand_number_2]))*180/math.pi
+
         # A = np.dot(robot_tfs[rand_number_1],np.linalg.inv(robot_tfs[rand_number_2]))
         # B = np.dot(pattern_tfs[rand_number_1],np.linalg.inv(pattern_tfs[rand_number_2]))
         A = np.dot(np.linalg.inv(T_w_b[rand_number_1]),T_w_b[rand_number_2])
@@ -73,12 +71,8 @@ for n in range(iters):
         beta.append(SE3.RotToVec(B[:3,:3])) #rotation B
         ta.append(A[:3,3]) #translation A
         tb.append(B[:3,3]) #translation B
-    if flag == False:
-        print "Unsuccessfully tried",datasize,"times to find sufficiently large angle between matrices: aborting!!"
-        break
-    else: 
-        Rxinit,txinit = axxb.FCParkSolution(alpha,beta,ta,tb)
-if (flag == True):
-    print(Rxinit)
-    print(txinit)
 
+    Rxinit,txinit = axxb.FCParkSolution(alpha,beta,ta,tb)
+
+print(Rxinit)
+print(txinit)

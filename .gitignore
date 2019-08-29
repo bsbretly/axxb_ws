@@ -4,6 +4,9 @@
 **/devel/
 **/logs/
 
+# output data
+**/output/
+
 # Prerequisites
 *.d
 
