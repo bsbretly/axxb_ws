@@ -33,6 +33,9 @@ T_i_c =  pickle.load(open( filename, "rb" ) )
 filename = "output/camera_quat"
 camera_quat =  pickle.load(open( filename, "rb" ) )
 
+A = np.dot(np.linalg.inv(T_w_b[0]),T_w_b[20])
+B = np.dot(np.linalg.inv(T_i_c[0]),T_i_c[20])
+
 # datasize = len(pattern_tfs)
 datasize = len(T_w_b)
 # ksamples = 30
@@ -67,6 +70,8 @@ for n in range(iters):
         # B = np.dot(pattern_tfs[rand_number_1],np.linalg.inv(pattern_tfs[rand_number_2]))
         A = np.dot(np.linalg.inv(T_w_b[rand_number_1]),T_w_b[rand_number_2])
         B = np.dot(np.linalg.inv(T_i_c[rand_number_1]),T_i_c[rand_number_2])
+        # print "A =",A
+        # print "B =",B
         alpha.append(SE3.RotToVec(A[:3,:3])) #rotation A
         beta.append(SE3.RotToVec(B[:3,:3])) #rotation B
         ta.append(A[:3,3]) #translation A
