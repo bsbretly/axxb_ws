@@ -2,7 +2,7 @@
 import rospy
 import numpy as np
 from nav_msgs.msg import Odometry
-from scipy.spatial.transform import Rotation as R
+# from scipy.spatial.transform import Rotation as R
 from pyquaternion import Quaternion #Quaternion in the form (w, x, y, z)
 import pickle
 

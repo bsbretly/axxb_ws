@@ -8,6 +8,7 @@ import cope.SE3lib as SE3
 import cope.axxbcovariance as axxb
 import matplotlib.pyplot as plt
 import math
+from pyquaternion import Quaternion
 
 #helper functions
 def unit_vector(vector):
@@ -79,5 +80,9 @@ for n in range(iters):
 
     Rxinit,txinit = axxb.FCParkSolution(alpha,beta,ta,tb)
 
-print(Rxinit)
-print(txinit)
+print Rxinit
+print txinit
+Rxinit_inv = np.zeros((3, 3))
+Rxinit_inv = np.linalg.inv(Rxinit)
+
+print Quaternion(matrix=Rxinit_inv)
